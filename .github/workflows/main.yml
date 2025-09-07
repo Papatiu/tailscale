@@ -32,7 +32,7 @@ jobs:
       - name: Create RDP User with Secure Password
         run: |
           # Set a fixed password as requested
-          $password = "coderz4571"
+          $password = "$password = "Coderz4571!"
           $securePass = ConvertTo-SecureString $password -AsPlainText -Force
 
           # If the user already exists, update the password; otherwise create the user
