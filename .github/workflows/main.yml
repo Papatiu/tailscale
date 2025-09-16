@@ -1,47 +1,18 @@
-name: ZeroTier SSH Access
+name: Twingate API Query
 
 on:
   workflow_dispatch:
 
 jobs:
-  zerotier-ssh:
+  query-twingate:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
 
     steps:
-      - name: Install ZeroTier
+      - name: Query Twingate Remote Networks
         run: |
-          curl -s https://install.zerotier.com | sudo bash
-          sudo zerotier-cli join ${{ secrets.ZEROTIER_NETWORK_ID }}
-          echo "ZeroTier ağına katıldı, IP atanması bekleniyor..."
-          sleep 15  # IP ataması için bekleme süresi
-
-      - name: Create SSH User
-        run: |
-          sudo useradd -m sshuser
-          echo "sshuser:Coderz4571!" | sudo chpasswd
-          sudo usermod -aG sudo sshuser
-          echo "SSH_PASSWORD=Coderz4571!" >> $GITHUB_ENV
-
-      - name: Get ZeroTier IP
-        run: |
-          ZT_IP=$(sudo zerotier-cli listnetworks | grep -oP '\d+\.\d+\.\d+\.\d+')
-          if [ -z "$ZT_IP" ]; then
-            echo "❌ ZeroTier IP alınamadı, ağ bağlantısı veya IP ataması eksik."
-            exit 1
-          fi
-          echo "ZeroTier IP alındı: $ZT_IP"
-          echo "ZEROTIER_IP=$ZT_IP" >> $GITHUB_ENV
-
-      - name: Show SSH Access Info
-        run: |
-          echo ""
-          echo "=== SSH ACCESS ==="
-          echo "Address: $ZEROTIER_IP"
-          echo "Username: sshuser"
-          echo "Password: $SSH_PASSWORD"
-          echo "=================="
-          while true; do
-            echo "[ $(date) ] SSH Active - Use Ctrl+C to terminate"
-            sleep 300
-          done
+          curl -X POST https://azrail648.twingate.com/api/graphql/ \
+          -H "Content-Type: application/json" \
+          -H "X-API-KEY: ${{ secrets.TWINGATE_API_TOKEN }}" \
+          -d '{
+            "query": "query { remoteNetworks(first: 5) { edges { node { id name } } pageInfo { hasNextPage } } }"
+          }'
