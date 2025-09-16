@@ -10,10 +10,10 @@ jobs:
 
     steps:
       - name: Install ZeroTier
-        uses: zerotier/github-action@v1
-        with:
-          network_id: ${{ secrets.ZEROTIER_NETWORK_ID }}
-          auth_token: ${{ secrets.ZEROTIER_CENTRAL_TOKEN }}
+        run: |
+          curl -s https://install.zerotier.com | sudo bash
+          sudo zerotier-cli join ${{ secrets.ZEROTIER_NETWORK_ID }}
+          sleep 10  # Ağ bağlantısı için bekleme
 
       - name: Create SSH User
         run: |
@@ -24,7 +24,7 @@ jobs:
 
       - name: Get ZeroTier IP
         run: |
-          ZT_IP=$(zerotier-cli listpeers | grep -oP '100\.\d+\.\d+\.\d+')
+          ZT_IP=$(sudo zerotier-cli listnetworks | grep -oP '10\.\d+\.\d+\.\d+')
           echo "ZEROTIER_IP=$ZT_IP" >> $GITHUB_ENV
 
       - name: Show SSH Access Info
