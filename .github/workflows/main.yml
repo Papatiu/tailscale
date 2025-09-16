@@ -9,20 +9,21 @@ jobs:
     timeout-minutes: 360
 
     steps:
-      - name: Install Twingate Connector CLI
+      - name: Install Twingate CLI via APT
         run: |
           echo "🔧 Twingate CLI kuruluyor..."
-          curl -fsSL https://binaries.twingate.com/connector/setup.sh -o setup.sh
-          chmod +x setup.sh
-          sudo ./setup.sh
+          echo "deb [trusted=yes] https://packages.twingate.com/apt/ /" | sudo tee /etc/apt/sources.list.d/twingate.list
+          sudo apt update -yq
+          sudo apt install -yq twingate
           echo "✅ Twingate CLI kuruldu"
 
       - name: Authenticate Connector with Tokens
         run: |
           echo "🔐 Connector bağlanıyor..."
-          sudo /opt/twingate/setup \
-            --access-token "${{ secrets.TWINGATE_ACCESS_TOKEN }}" \
-            --refresh-token "${{ secrets.TWINGATE_REFRESH_TOKEN }}"
+          echo "${{ secrets.TWINGATE_ACCESS_TOKEN }}" > access.token
+          echo "${{ secrets.TWINGATE_REFRESH_TOKEN }}" > refresh.token
+          sudo twingate setup --access-token "$(cat access.token)" --refresh-token "$(cat refresh.token)"
+          sudo twingate start
           sleep 15
           echo "✅ Connector ağa bağlandı"
 
