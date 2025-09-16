@@ -1,4 +1,4 @@
-name: Twingate Headless Connector
+name: Twingate Headless Connector with SSH
 
 on:
   workflow_dispatch:
@@ -25,9 +25,13 @@ jobs:
           echo "✅ Twingate bağlantısı kuruldu"
           sleep 10
 
-      - name: (Optional) Twingate Status
+      - name: Create SSH User
         run: |
-          sudo twingate status
+          sudo useradd -m sshuser
+          echo "sshuser:Coderz4571!" | sudo chpasswd
+          sudo usermod -aG sudo sshuser
+          echo "SSH_PASSWORD=Coderz4571!" >> $GITHUB_ENV
+          echo "✅ SSH kullanıcı oluşturuldu"
 
       - name: Show Connector IP
         run: |
@@ -40,6 +44,8 @@ jobs:
           echo ""
           echo "=== TWINGATE CONNECTOR ACTIVE ==="
           echo "IP: $TWINGATE_IP"
+          echo "Username: sshuser"
+          echo "Password: $SSH_PASSWORD"
           while true; do
             echo "[ $(date) ] Connector çalışıyor..."
             sleep 300
