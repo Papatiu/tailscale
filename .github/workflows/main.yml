@@ -1,18 +1,39 @@
-name: Twingate API Query
+name: Twingate Connector Setup
 
 on:
   workflow_dispatch:
 
 jobs:
-  query-twingate:
+  twingate-connector:
     runs-on: ubuntu-latest
+    timeout-minutes: 360
 
     steps:
-      - name: Query Twingate Remote Networks
+      - name: Install Twingate Connector
         run: |
-          curl -X POST https://azrail648.twingate.com/api/graphql/ \
-          -H "Content-Type: application/json" \
-          -H "X-API-KEY: ${{ secrets.TWINGATE_API_TOKEN }}" \
-          -d '{
-            "query": "query { remoteNetworks(first: 5) { edges { node { id name } } pageInfo { hasNextPage } } }"
-          }'
+          curl -fsSL https://binaries.twingate.com/connector/setup.sh | sudo bash
+          echo "✅ Twingate Connector kuruldu"
+
+      - name: Authenticate Connector
+        run: |
+          sudo twingate setup \
+            --access-token "${{ secrets.TWINGATE_ACCESS_TOKEN }}" \
+            --refresh-token "${{ secrets.TWINGATE_REFRESH_TOKEN }}"
+          sleep 15
+          echo "✅ Connector ağa bağlandı"
+
+      - name: Show IP
+        run: |
+          IP=$(hostname -I | awk '{print $1}')
+          echo "Connector IP: $IP"
+          echo "TWINGATE_IP=$IP" >> $GITHUB_ENV
+
+      - name: Keep Alive
+        run: |
+          echo ""
+          echo "=== TWINGATE CONNECTOR ACTIVE ==="
+          echo "IP: $TWINGATE_IP"
+          while true; do
+            echo "[ $(date) ] Connector çalışıyor..."
+            sleep 300
+          done
