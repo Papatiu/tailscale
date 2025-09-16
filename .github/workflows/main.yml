@@ -1,4 +1,4 @@
-name: Twingate Connector Setup
+name: Twingate Headless Connector
 
 on:
   workflow_dispatch:
@@ -9,23 +9,25 @@ jobs:
     timeout-minutes: 360
 
     steps:
-      - name: Install Twingate CLI via APT
+      - name: Install Twingate Headless Client
         run: |
-          echo "🔧 Twingate CLI kuruluyor..."
+          echo "🔧 Twingate Client kuruluyor..."
           echo "deb [trusted=yes] https://packages.twingate.com/apt/ /" | sudo tee /etc/apt/sources.list.d/twingate.list
           sudo apt update -yq
           sudo apt install -yq twingate
-          echo "✅ Twingate CLI kuruldu"
 
-      - name: Authenticate Connector with Tokens
+      - name: Setup and Start Twingate
+        env:
+          TWINGATE_SERVICE_KEY: ${{ secrets.TWINGATE_SERVICE_KEY }}
         run: |
-          echo "🔐 Connector bağlanıyor..."
-          echo "${{ secrets.TWINGATE_ACCESS_TOKEN }}" > access.token
-          echo "${{ secrets.TWINGATE_REFRESH_TOKEN }}" > refresh.token
-          sudo twingate setup --access-token "$(cat access.token)" --refresh-token "$(cat refresh.token)"
+          echo "$TWINGATE_SERVICE_KEY" | sudo twingate setup --headless=-
           sudo twingate start
-          sleep 15
-          echo "✅ Connector ağa bağlandı"
+          echo "✅ Twingate bağlantısı kuruldu"
+          sleep 10
+
+      - name: (Optional) Twingate Status
+        run: |
+          sudo twingate status
 
       - name: Show Connector IP
         run: |
