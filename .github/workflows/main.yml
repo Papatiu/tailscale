@@ -9,26 +9,30 @@ jobs:
     timeout-minutes: 360
 
     steps:
-      - name: Install Twingate Connector
+      - name: Install Twingate Connector CLI
         run: |
-          curl -fsSL https://binaries.twingate.com/connector/setup.sh | sudo bash
-          echo "✅ Twingate Connector kuruldu"
+          echo "🔧 Twingate CLI kuruluyor..."
+          curl -fsSL https://binaries.twingate.com/connector/setup.sh -o setup.sh
+          chmod +x setup.sh
+          sudo ./setup.sh
+          echo "✅ Twingate CLI kuruldu"
 
-      - name: Authenticate Connector
+      - name: Authenticate Connector with Tokens
         run: |
-          sudo twingate setup \
+          echo "🔐 Connector bağlanıyor..."
+          sudo /opt/twingate/setup \
             --access-token "${{ secrets.TWINGATE_ACCESS_TOKEN }}" \
             --refresh-token "${{ secrets.TWINGATE_REFRESH_TOKEN }}"
           sleep 15
           echo "✅ Connector ağa bağlandı"
 
-      - name: Show IP
+      - name: Show Connector IP
         run: |
           IP=$(hostname -I | awk '{print $1}')
           echo "Connector IP: $IP"
           echo "TWINGATE_IP=$IP" >> $GITHUB_ENV
 
-      - name: Keep Alive
+      - name: Keep Connector Alive
         run: |
           echo ""
           echo "=== TWINGATE CONNECTOR ACTIVE ==="
